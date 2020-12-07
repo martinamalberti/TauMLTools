@@ -58,6 +58,7 @@ private:
 
 public:
 
+
     static TauTupleProducerData* RequestGlobalData()
     {
         TauTupleProducerData* data = GetGlobalData();
@@ -127,7 +128,10 @@ public:
         genEvent_token(mayConsume<GenEventInfoProduct>(cfg.getParameter<edm::InputTag>("genEvent"))),
         genParticles_token(mayConsume<std::vector<reco::GenParticle>>(cfg.getParameter<edm::InputTag>("genParticles"))),
         puInfo_token(mayConsume<std::vector<PileupSummaryInfo>>(cfg.getParameter<edm::InputTag>("puInfo"))),
+        genXYZ_token(consumes<genXYZ>(cfg.getParameter<edm::InputTag>("genXYZTag"))),    
+        genT0_token(consumes<float>(cfg.getParameter<edm::InputTag>("genT0Tag"))), 
         vertices_token(consumes<std::vector<reco::Vertex> >(cfg.getParameter<edm::InputTag>("vertices"))),
+        vertices3D_token(consumes<std::vector<reco::Vertex> >(cfg.getParameter<edm::InputTag>("vertices3D"))),
         rho_token(consumes<double>(cfg.getParameter<edm::InputTag>("rho"))),
         electrons_token(consumes<pat::ElectronCollection>(cfg.getParameter<edm::InputTag>("electrons"))),
         muons_token(consumes<pat::MuonCollection>(cfg.getParameter<edm::InputTag>("muons"))),
@@ -182,6 +186,22 @@ private:
             edm::Handle<std::vector<PileupSummaryInfo>> puInfo;
             event.getByToken(puInfo_token, puInfo);
             tauTuple().npu = gen_truth::GetNumberOfPileUpInteractions(puInfo);
+
+	    // -- get the genXYZ
+	    edm::Handle<genXYZ> genXYZHandle;
+	    event.getByToken(genXYZ_token, genXYZHandle);
+  
+	    // -- get the genT0
+	    edm::Handle<float> genT0Handle;
+	    event.getByToken(genT0_token, genT0Handle);
+
+	    auto xyz = genXYZHandle.product();
+
+	    tauTuple().genpv_x = xyz->x();
+	    tauTuple().genpv_y = xyz->y();
+	    tauTuple().genpv_z = xyz->z();
+	    tauTuple().genpv_t = *genT0Handle.product();
+
         }
 
         const auto& PV = vertices->at(0);
@@ -195,6 +215,23 @@ private:
         tauTuple().pv_tE = static_cast<float>(PV.tError());
         tauTuple().pv_chi2 = static_cast<float>(PV.chi2());
         tauTuple().pv_ndof = static_cast<float>(PV.ndof());
+
+
+        edm::Handle<std::vector<reco::Vertex>> vertices3D;
+        event.getByToken(vertices3D_token, vertices3D);
+
+        const auto& PV3D = vertices3D->at(0);
+        tauTuple().pv3D_x = static_cast<float>(PV3D.position().x());
+        tauTuple().pv3D_y = static_cast<float>(PV3D.position().y());
+        tauTuple().pv3D_z = static_cast<float>(PV3D.position().z());
+        tauTuple().pv3D_t = static_cast<float>(PV3D.t());
+        tauTuple().pv3D_xE = static_cast<float>(PV3D.xError());
+        tauTuple().pv3D_yE = static_cast<float>(PV3D.yError());
+        tauTuple().pv3D_zE = static_cast<float>(PV3D.zError());
+        tauTuple().pv3D_tE = static_cast<float>(PV3D.tError());
+        tauTuple().pv3D_chi2 = static_cast<float>(PV3D.chi2());
+        tauTuple().pv3D_ndof = static_cast<float>(PV3D.ndof());
+
 
         edm::Handle<pat::ElectronCollection> electrons;
         event.getByToken(electrons_token, electrons);
@@ -758,13 +795,18 @@ private:
     }
 
 private:
+    typedef ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag> genXYZ;
+
     const bool isMC, isEmbedded, storeJetsWithoutTau, requireGenMatch;
     TauJetBuilderSetup builderSetup;
 
     edm::EDGetTokenT<GenEventInfoProduct> genEvent_token;
     edm::EDGetTokenT<std::vector<reco::GenParticle>> genParticles_token;
     edm::EDGetTokenT<std::vector<PileupSummaryInfo>> puInfo_token;
+    edm::EDGetTokenT<genXYZ> genXYZ_token;
+    edm::EDGetTokenT<float>  genT0_token;
     edm::EDGetTokenT<std::vector<reco::Vertex>> vertices_token;
+    edm::EDGetTokenT<std::vector<reco::Vertex>> vertices3D_token;
     edm::EDGetTokenT<double> rho_token;
     edm::EDGetTokenT<pat::ElectronCollection> electrons_token;
     edm::EDGetTokenT<pat::MuonCollection> muons_token;

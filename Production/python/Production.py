@@ -105,7 +105,8 @@ if isPhase2:
     updatedTauName = "slimmedTausNewID"
     tauIdEmbedder = tauIdConfig.TauIDEmbedder(
         process, cms, updatedTauName = updatedTauName,
-        toKeep = [ "2017v2", "dR0p32017v2", "newDM2017v2", "deepTau2017v2p1", "newDMPhase2v1"]
+        #toKeep = [ "2017v2", "dR0p32017v2", "newDM2017v2", "deepTau2017v2p1", "newDMPhase2v1"]
+        toKeep = [ "2017v2", "dR0p32017v2", "newDM2017v2", "deepTau2017v2p1"]
     )
     tauIdEmbedder.runTauID() # note here, that with the official CMSSW version of 'runTauIdMVA' slimmedTaus are hardcoded as input tau collection
 else:
@@ -128,6 +129,7 @@ if isPhase2:
     )
     electronSrc_InputTag = cms.InputTag('slimmedElectronsMerged')
     vtxSrc_InputTag = cms.InputTag('offlineSlimmedPrimaryVertices4D')
+    vtx3DSrc_InputTag = cms.InputTag('offlineSlimmedPrimaryVertices')
 else:
     electronSrc_InputTag = cms.InputTag('slimmedElectrons')
     vtxSrc_InputTag = cms.InputTag('offlineSlimmedPrimaryVertices')
@@ -147,8 +149,11 @@ process.tauTupleProducer = cms.EDAnalyzer('TauTupleProducer',
     lheEventProduct = cms.InputTag('externalLHEProducer'),
     genEvent        = cms.InputTag('generator'),
     genParticles    = cms.InputTag('prunedGenParticles'),
+    genXYZTag       = cms.InputTag("genParticles", "xyz0", "HLT"),
+    genT0Tag        = cms.InputTag("genParticles", "t0", "HLT"),
     puInfo          = cms.InputTag('slimmedAddPileupInfo'),
     vertices        = vtxSrc_InputTag,
+    vertices3D      = vtx3DSrc_InputTag,
     rho             = cms.InputTag('fixedGridRhoAll'),
     electrons       = electronSrc_InputTag,
     muons           = cms.InputTag('slimmedMuons'),

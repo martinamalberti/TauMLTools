@@ -50,10 +50,15 @@
     VAR(ULong64_t, dataset_group_id) /* ID of the dataset group (needed to identify the original dataset group
                                     after shuffle&merge) */ \
     VAR(Float_t, npu) /* number of in-time pu interactions added to the event */ \
+    VAR4(Float_t, genpv_x, genpv_y, genpv_z, genpv_t) /* position and time of the GEN primary vertex (PV) */ \
     VAR4(Float_t, pv_x, pv_y, pv_z, pv_t) /* position and time of the primary vertex (PV) */ \
     VAR4(Float_t, pv_xE, pv_yE, pv_zE, pv_tE) /* position and time errors of the primary vertex (PV) */ \
     VAR(Float_t, pv_chi2) /* chi^2 of the primary vertex (PV) */ \
     VAR(Float_t, pv_ndof) /* number of degrees of freedom of the primary vertex (PV) */ \
+    VAR4(Float_t, pv3D_x, pv3D_y, pv3D_z, pv3D_t) /* position and time of the primary vertex (PV) */ \
+    VAR4(Float_t, pv3D_xE, pv3D_yE, pv3D_zE, pv3D_tE) /* position and time errors of the primary vertex (PV) */ \
+    VAR(Float_t, pv3D_chi2) /* chi^2 of the primary vertex (PV) */ \
+    VAR(Float_t, pv3D_ndof) /* number of degrees of freedom of the primary vertex (PV) */ \
     /* Jet variables */ \
     VAR(Int_t, jet_index) /* index of the jet */ \
     VAR4(Float_t, jet_pt, jet_eta, jet_phi, jet_mass) /* 4-momentum of the jet */ \
