@@ -382,6 +382,7 @@ private:
                     has_tau ? tau->etaAtEcalEntranceLeadChargedCand() : default_value;
 
             FillPFCandidates(tauJet.cands);
+	    FillParticleGenMatch(tauJet.cands, genParticles);
             FillElectrons(tauJet.electrons);
             FillMuons(tauJet.muons);
             FillTracks(tauJet.tracks);
@@ -459,7 +460,7 @@ private:
         tauTuple().qcd_gen_mass = has_qcd ? static_cast<float>(qcdMatch.gen_particle->polarP4().mass()) : default_value;
     }
 
-    void FillPFCandidates(const std::vector<PFCandDesc>& cands)
+  void FillPFCandidates(const std::vector<PFCandDesc>& cands)
     {
         for(const PFCandDesc& cand_desc : cands) {
             const pat::PackedCandidate* cand = cand_desc.candidate;
@@ -507,9 +508,57 @@ private:
             tauTuple().pfCand_caloFraction.push_back(cand->caloFraction());
             tauTuple().pfCand_rawCaloFraction.push_back(cand->rawCaloFraction());
             tauTuple().pfCand_rawHcalFraction.push_back(cand->rawHcalFraction());
+
         }
     }
+  
+  void FillParticleGenMatch( const std::vector<PFCandDesc>& cands, const reco::GenParticleCollection* genParticles)
+  {
+    for(const PFCandDesc& cand_desc : cands) {
+      const pat::PackedCandidate* cand = cand_desc.candidate;   
 
+      // match pf Cand with gen particles
+      float DRMin = 1e9;
+      float genpt = -999;
+      float geneta = -999;
+      float genphi = -999;
+      float genmass = -999;
+      float dr = -999;
+      int pdgId = -999;
+      int charge = -999;
+
+      for(unsigned int ip=0; ip < genParticles->size(); ip++ ){
+	const reco::GenParticle& genparticle = genParticles->at(ip);
+	      
+	if ( genparticle.status() != 1 ) continue;
+	if ( genparticle.charge() != cand->charge() ) continue;
+	
+	float DR =  deltaR(cand->polarP4().eta(), cand->polarP4().phi(), genparticle.eta(), genparticle.phi());
+
+	if( DR < DRMin ) {
+	  DRMin = DR;
+	  pdgId = genparticle.pdgId();
+	  charge  = genparticle.charge();
+	  genpt   = genparticle.pt();
+	  geneta  = genparticle.eta();
+	  genphi  = genparticle.phi();
+	  genmass = genparticle.mass();
+	  dr = DRMin;
+	}
+      }
+
+      tauTuple().pfCand_particle_gen_match_dr.push_back(dr);
+      tauTuple().pfCand_particle_gen_match_pdgid.push_back(pdgId);
+      tauTuple().pfCand_particle_gen_match_charge.push_back(charge);
+      tauTuple().pfCand_particle_gen_match_pt.push_back(genpt);
+      tauTuple().pfCand_particle_gen_match_eta.push_back(geneta);
+      tauTuple().pfCand_particle_gen_match_phi.push_back(genphi);
+      tauTuple().pfCand_particle_gen_match_mass.push_back(genmass);
+
+    }
+  }
+  
+  
     void FillElectrons(const std::vector<const pat::Electron*>& electrons)
     {
         for(const pat::Electron* ele : electrons) {

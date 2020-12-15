@@ -192,7 +192,11 @@
     CAND_VAR2(Float_t, caloFraction, hcalFraction) /* fraction of ECAL and HCAL for HF and neutral hadrons
                                        and isolated charged hadrons */ \
     CAND_VAR2(Float_t, rawCaloFraction, rawHcalFraction) /* raw ECAL and HCAL energy over candidate energy for isolated charged hadrons */ \
-    /* PAT electrons */ \
+    CAND_VAR(Float_t, particle_gen_match_dr)/* pfCand gen matching to gen particles*/ \
+    CAND_VAR(Float_t, particle_gen_match_pdgid)/* pfCand gen matching to gen particles*/ \
+    CAND_VAR(Float_t, particle_gen_match_charge)/* pfCand gen matching to gen particles*/ \
+    CAND_VAR4(Float_t, particle_gen_match_pt, particle_gen_match_eta, particle_gen_match_phi, particle_gen_match_mass)/* pfCand gen matching to gen particles*/ \
+   /* PAT electrons */ \
     ELE_VAR4(Float_t, pt, eta, phi, mass) /* 4-momentum of the electron */ \
     ELE_VAR(Float_t, cc_ele_energy) /* energy of the first calo cluster in the electron super cluster */ \
     ELE_VAR(Float_t, cc_gamma_energy) /* sum of the energies of additional calo clusters
