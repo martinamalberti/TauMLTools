@@ -16,6 +16,7 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/IsolatedTrack.h"
 #include "DataFormats/TrackReco/interface/HitPattern.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
@@ -127,6 +128,7 @@ public:
         requireGenMatch(cfg.getParameter<bool>("requireGenMatch")),
         genEvent_token(mayConsume<GenEventInfoProduct>(cfg.getParameter<edm::InputTag>("genEvent"))),
         genParticles_token(mayConsume<std::vector<reco::GenParticle>>(cfg.getParameter<edm::InputTag>("genParticles"))),
+	packedGenParticles_token(mayConsume<std::vector<pat::PackedGenParticle>>(cfg.getParameter<edm::InputTag>("packedGenParticles"))),
         puInfo_token(mayConsume<std::vector<PileupSummaryInfo>>(cfg.getParameter<edm::InputTag>("puInfo"))),
         genXYZ_token(consumes<genXYZ>(cfg.getParameter<edm::InputTag>("genXYZTag"))),    
         genT0_token(consumes<float>(cfg.getParameter<edm::InputTag>("genT0Tag"))), 
@@ -252,10 +254,14 @@ private:
         event.getByToken(tracks_token, tracks);
 
         edm::Handle<std::vector<reco::GenParticle>> hGenParticles;
-        if(isMC)
+	edm::Handle<std::vector<pat::PackedGenParticle> > hPackedGenParticles;
+        if(isMC) {
             event.getByToken(genParticles_token, hGenParticles);
+            event.getByToken(packedGenParticles_token, hPackedGenParticles);
+	}
 
         auto genParticles = hGenParticles.isValid() ? hGenParticles.product() : nullptr;
+        auto packedGenParticles = hPackedGenParticles.isValid() ? hPackedGenParticles.product() : nullptr;
 
         TauJetBuilder builder(builderSetup, *jets, *taus, *cands, *electrons, *muons, *tracks, genParticles);
         const auto tauJets = builder.Build();
@@ -382,7 +388,7 @@ private:
                     has_tau ? tau->etaAtEcalEntranceLeadChargedCand() : default_value;
 
             FillPFCandidates(tauJet.cands);
-	    FillParticleGenMatch(tauJet.cands, genParticles);
+	    FillParticleGenMatch(tauJet.cands, packedGenParticles);
             FillElectrons(tauJet.electrons);
             FillMuons(tauJet.muons);
             FillTracks(tauJet.tracks);
@@ -512,7 +518,8 @@ private:
         }
     }
   
-  void FillParticleGenMatch( const std::vector<PFCandDesc>& cands, const reco::GenParticleCollection* genParticles)
+
+  void FillParticleGenMatch( const std::vector<PFCandDesc>& cands, const std::vector<pat::PackedGenParticle>* genParticles)
   {
     for(const PFCandDesc& cand_desc : cands) {
       const pat::PackedCandidate* cand = cand_desc.candidate;   
@@ -528,7 +535,8 @@ private:
       int charge = -999;
 
       for(unsigned int ip=0; ip < genParticles->size(); ip++ ){
-	const reco::GenParticle& genparticle = genParticles->at(ip);
+	//const reco::GenParticle& genparticle = genParticles->at(ip);
+	const pat::PackedGenParticle& genparticle = genParticles->at(ip);
 	      
 	if ( genparticle.status() != 1 ) continue;
 	if ( genparticle.charge() != cand->charge() ) continue;
@@ -557,6 +565,7 @@ private:
 
     }
   }
+
   
   
     void FillElectrons(const std::vector<const pat::Electron*>& electrons)
@@ -851,6 +860,7 @@ private:
 
     edm::EDGetTokenT<GenEventInfoProduct> genEvent_token;
     edm::EDGetTokenT<std::vector<reco::GenParticle>> genParticles_token;
+    edm::EDGetTokenT<std::vector<pat::PackedGenParticle>> packedGenParticles_token;
     edm::EDGetTokenT<std::vector<PileupSummaryInfo>> puInfo_token;
     edm::EDGetTokenT<genXYZ> genXYZ_token;
     edm::EDGetTokenT<float>  genT0_token;
